@@ -3,7 +3,8 @@ import { ApifyClient } from "apify-client";
 import { normalizeCreator } from "./collectors/normalize";
 import { deduplicateCreators } from "./utils/deduplicate";
 import { filterCreators } from "./filters/filterCreators";
-import { classifyCreator } from "./classifiers/gemini";
+import { saveJson } from "./utils/saveJson";
+import { classifyCreator } from "./classifiers/groq";
 
 dotenv.config();
 
@@ -34,8 +35,6 @@ async function main() {
     const uniqueCreators = deduplicateCreators(creators);
     const filteredCreators = filterCreators(uniqueCreators);
 
-    console.log(filteredCreators.slice(0, 5));
-
     console.log(`
         Pipeline Results
         ----------------
@@ -56,7 +55,27 @@ async function main() {
 
     const result = await classifyCreator(filteredCreators[0]);
 
-    console.log(result);
+    const qualifiedCreators = [];
+
+    for (const creator of filteredCreators) {
+
+        const classification = await classifyCreator(creator);
+
+        if (classification.fit) {
+
+            qualifiedCreators.push({
+                creator,
+                classification
+            });
+
+        }
+
+    }
+
+    await saveJson(
+        "qualified-creators.json",
+        qualifiedCreators
+    );
 }
 
 main();
