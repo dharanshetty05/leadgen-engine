@@ -5,6 +5,8 @@ import { deduplicateCreators } from "./utils/deduplicate";
 import { filterCreators } from "./filters/filterCreators";
 import { saveJson } from "./utils/saveJson";
 import { classifyCreator } from "./classifiers/groq";
+import { normalizeVideo } from "./collectors/normalizeVideo";
+import { groupVideosByChannel } from "./utils/groupVideos";
 
 dotenv.config();
 
@@ -19,63 +21,78 @@ async function main() {
         mode: "searchChannels",
         searchTerms: [
             "business",
-            "psychology"
         ],
         maxResultsPerQuery: 5,
-        includeVideos: false,
+        includeVideos: true,
+        maxVideosPerChannel: 10,
+        includeVideoStats: true,
         enrichCreatorContacts: false,
-        language: "en"
+        language: "en",
     });
 
     const { items } = await client
         .dataset(run.defaultDatasetId!)
         .listItems();
 
-    const creators = items.map(normalizeCreator);
-    const uniqueCreators = deduplicateCreators(creators);
-    const filteredCreators = filterCreators(uniqueCreators);
+    const channelItems = items.filter(
+    item => item.type === "channel"
+);
 
-    console.log(`
-        Pipeline Results
-        ----------------
-        Raw: ${items.length}
-        Normalized: ${creators.length}
-        Unique: ${uniqueCreators.length}
-        Filtered: ${filteredCreators.length}
-    `);
+const videoItems = items.filter(
+    item => item.type === "video"
+);
 
-    console.table(
-        filteredCreators.map((creator) => ({
-            Name: creator.channelName,
-            Subscribers: creator.subscribers,
-            Country: creator.country,
-            Query: creator.sourceQuery,
-        }))
-    );
+console.log(channelItems.length);
+console.log(videoItems.length);
 
-    const result = await classifyCreator(filteredCreators[0]);
+const videos = videoItems.map(normalizeVideo);
+const creators = items.map(normalizeCreator);
 
-    const qualifiedCreators = [];
+const videosByChannel = groupVideosByChannel(videoItems);
 
-    for (const creator of filteredCreators) {
+console.log(
+    videosByChannel.get(
+        creators[0].channelId
+    )
+);
 
-        const classification = await classifyCreator(creator);
+    // const uniqueCreators = deduplicateCreators(creators);
+    // const filteredCreators = filterCreators(uniqueCreators);
 
-        if (classification.fit) {
+    // console.log(`
+    //     Pipeline Results
+    //     ----------------
+    //     Raw: ${items.length}
+    //     Normalized: ${creators.length}
+    //     Unique: ${uniqueCreators.length}
+    //     Filtered: ${filteredCreators.length}
+    // `);
 
-            qualifiedCreators.push({
-                creator,
-                classification
-            });
+    // console.table(
+    //     filteredCreators.map((creator) => ({
+    //         Name: creator.channelName,
+    //         Subscribers: creator.subscribers,
+    //         Country: creator.country,
+    //         Query: creator.sourceQuery,
+    //     }))
+    // );
 
-        }
+    // const result = await classifyCreator(filteredCreators[0]);
+    // const qualifiedCreators = [];
+    // for (const creator of filteredCreators) {
+    //     const classification = await classifyCreator(creator);
+    //     if (classification.fit) {
+    //         qualifiedCreators.push({
+    //             creator,
+    //             classification
+    //         });
+    //     }
+    // }
 
-    }
-
-    await saveJson(
-        "qualified-creators.json",
-        qualifiedCreators
-    );
+    // await saveJson(
+    //     "qualified-creators.json",
+    //     qualifiedCreators
+    // );
 }
 
 main();
