@@ -3,6 +3,7 @@ import { ApifyClient } from "apify-client";
 import { normalizeCreator } from "./collectors/normalize";
 import { deduplicateCreators } from "./utils/deduplicate";
 import { filterCreators } from "./filters/filterCreators";
+import { classifyCreator } from "./classifiers/gemini";
 
 dotenv.config();
 
@@ -12,6 +13,7 @@ const client = new ApifyClient({
 
 async function main() {
     console.log("Running actor...");
+    
     const run = await client.actor("scrapesage/youtube-scraper").call({
         mode: "searchChannels",
         searchTerms: [
@@ -51,6 +53,10 @@ async function main() {
             Query: creator.sourceQuery,
         }))
     );
+
+    const result = await classifyCreator(filteredCreators[0]);
+
+    console.log(result);
 }
 
 main();
