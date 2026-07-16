@@ -1,5 +1,8 @@
 import dotenv from "dotenv";
 import { ApifyClient } from "apify-client";
+import { normalizeCreator } from "./collectors/normalize";
+import { deduplicateCreators } from "./utils/deduplicate";
+import { filterCreators } from "./filters/filterCreators";
 
 dotenv.config();
 
@@ -27,7 +30,22 @@ async function main() {
         .dataset(run.defaultDatasetId!)
         .listItems();
 
-    console.log(items);
+    console.log("Raw items:", items.length);
+
+    const creators = items.map(normalizeCreator);
+
+    console.log(creators[0]);
+
+    const uniqueCreators = deduplicateCreators(creators);
+
+    console.log("Before:", creators.length);
+    console.log("After:", uniqueCreators.length);
+
+    const filteredCreators = filterCreators(uniqueCreators);
+
+    console.log("Filtered:", filteredCreators.length);
+
+    console.log(filteredCreators.slice(0, 5));
 }
 
 main();
