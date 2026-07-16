@@ -24,28 +24,33 @@ async function main() {
         language: "en"
     });
 
-    console.log(run.defaultDatasetId);
-
     const { items } = await client
         .dataset(run.defaultDatasetId!)
         .listItems();
 
-    console.log("Raw items:", items.length);
-
     const creators = items.map(normalizeCreator);
-
-    console.log(creators[0]);
-
     const uniqueCreators = deduplicateCreators(creators);
-
-    console.log("Before:", creators.length);
-    console.log("After:", uniqueCreators.length);
-
     const filteredCreators = filterCreators(uniqueCreators);
 
-    console.log("Filtered:", filteredCreators.length);
-
     console.log(filteredCreators.slice(0, 5));
+
+    console.log(`
+        Pipeline Results
+        ----------------
+        Raw: ${items.length}
+        Normalized: ${creators.length}
+        Unique: ${uniqueCreators.length}
+        Filtered: ${filteredCreators.length}
+    `);
+
+    console.table(
+        filteredCreators.map((creator) => ({
+            Name: creator.channelName,
+            Subscribers: creator.subscribers,
+            Country: creator.country,
+            Query: creator.sourceQuery,
+        }))
+    );
 }
 
 main();
