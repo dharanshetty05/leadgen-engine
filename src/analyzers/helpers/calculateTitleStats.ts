@@ -1,7 +1,7 @@
 import { Video } from "../../types/video";
-import { TitleLengthStats } from "../../types/videoEvidence";
+import { TitleStats } from "../../types/videoEvidence";
 
-export function calculateTitleStats(videos: Video[]): TitleLengthStats {
+export function calculateTitleStats(videos: Video[]): TitleStats {
     if (!videos || videos.length === 0) {
         return {
             averageChars: 0,

@@ -7,6 +7,10 @@ import { saveJson } from "./utils/saveJson";
 import { classifyCreator } from "./classifiers/groq";
 import { normalizeVideo } from "./collectors/normalizeVideo";
 import { groupVideosByChannel } from "./utils/groupVideos";
+import { QualifiedCreator } from "./types/qualifiedCreator";
+import { CreatorWithVideos } from "./types/creatorWithVideos";
+import { CreatorWithVideoEvidence } from "./types/creatorWithVideoEvidence";
+import { analyzeVideoEvidence } from "./analyzers/videoEvidence";
 
 dotenv.config();
 
@@ -56,6 +60,8 @@ console.log(
     )
 );
 
+    // Example progressive pipeline progression:
+    // Creator -> QualifiedCreator -> CreatorWithVideos -> CreatorWithVideoEvidence -> Lead
     // const uniqueCreators = deduplicateCreators(creators);
     // const filteredCreators = filterCreators(uniqueCreators);
 
@@ -68,30 +74,33 @@ console.log(
     //     Filtered: ${filteredCreators.length}
     // `);
 
-    // console.table(
-    //     filteredCreators.map((creator) => ({
-    //         Name: creator.channelName,
-    //         Subscribers: creator.subscribers,
-    //         Country: creator.country,
-    //         Query: creator.sourceQuery,
-    //     }))
-    // );
-
-    // const result = await classifyCreator(filteredCreators[0]);
-    // const qualifiedCreators = [];
+    // const qualifiedCreators: QualifiedCreator[] = [];
     // for (const creator of filteredCreators) {
     //     const classification = await classifyCreator(creator);
     //     if (classification.fit) {
     //         qualifiedCreators.push({
-    //             creator,
+    //             ...creator,
     //             classification
     //         });
     //     }
     // }
 
+    // const creatorsWithEvidence: CreatorWithVideoEvidence[] = qualifiedCreators.map((qualifiedCreator) => {
+    //     const channelVideos = videosByChannel.get(qualifiedCreator.channelId) ?? [];
+    //     const creatorWithVideos: CreatorWithVideos = {
+    //         ...qualifiedCreator,
+    //         videos: channelVideos
+    //     };
+    //     const evidence = analyzeVideoEvidence(creatorWithVideos);
+    //     return {
+    //         ...creatorWithVideos,
+    //         evidence
+    //     };
+    // });
+
     // await saveJson(
     //     "qualified-creators.json",
-    //     qualifiedCreators
+    //     creatorsWithEvidence
     // );
 }
 

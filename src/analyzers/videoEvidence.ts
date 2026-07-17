@@ -1,4 +1,5 @@
-import { Creator } from "../types/creator";
+import { CreatorWithVideos } from "../types/creatorWithVideos";
+import { Video } from "../types/video";
 import { VideoEvidence } from "../types/videoEvidence";
 import { calculateViewStats } from "./helpers/calculateViewStats";
 import { calculateDurationStats } from "./helpers/calculateDurationStats";
@@ -6,13 +7,13 @@ import { calculateTitleStats } from "./helpers/calculateTitleStats";
 import { calculateUploadStats } from "./helpers/calculateUploadStats";
 import { parseRecencyToDays } from "../utils/recency";
 
-export function analyzeVideoEvidence(creator: Creator): VideoEvidence {
+export function analyzeVideoEvidence(creator: { channelId: string; videos: Video[] }): VideoEvidence {
     const videos = creator.videos ?? [];
 
     const viewStats = calculateViewStats(videos);
     const durationStats = calculateDurationStats(videos);
-    const titleLengthStats = calculateTitleStats(videos);
-    const { uploadRecency, uploadFrequency, uploadConsistency } = calculateUploadStats(videos);
+    const titleStats = calculateTitleStats(videos);
+    const uploadStats = calculateUploadStats(videos);
 
     // Sort latestVideos deterministically by recency (least days ago first, unparseable at the end)
     const latestVideos = [...videos].sort((a, b) => {
@@ -31,21 +32,10 @@ export function analyzeVideoEvidence(creator: Creator): VideoEvidence {
     return {
         channelId: creator.channelId,
 
-        uploadCount: videos.length,
-        uploadRecency,
-        uploadFrequency,
-        uploadConsistency,
-
-        averageViews: viewStats.average,
-        medianViews: viewStats.median,
-        highestViewedVideo: viewStats.highest,
-        lowestViewedVideo: viewStats.lowest,
-        averageDuration: durationStats.averageSeconds,
-        durationRange: durationStats.rangeSeconds,
-
+        uploadStats,
         viewStats,
         durationStats,
-        titleLengthStats,
+        titleStats,
 
         thumbnailUrls,
         latestVideos,

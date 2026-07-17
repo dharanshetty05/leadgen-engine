@@ -1,4 +1,3 @@
-import { Video } from "./video";
 
 export interface Creator {
     channelId: string;
@@ -17,5 +16,4 @@ export interface Creator {
     instagram?: string;
 
     sourceQuery: string;
-    videos?: Video[];
 }

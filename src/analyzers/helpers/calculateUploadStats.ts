@@ -1,17 +1,14 @@
 import { Video } from "../../types/video";
-import { UploadRecency, UploadFrequency, UploadConsistency } from "../../types/videoEvidence";
+import { UploadRecency, UploadFrequency, UploadConsistency, UploadStats } from "../../types/videoEvidence";
 import { parseRecencyToDays } from "../../utils/recency";
 
-export function calculateUploadStats(videos: Video[]): {
-    uploadRecency: UploadRecency;
-    uploadFrequency: UploadFrequency;
-    uploadConsistency: UploadConsistency;
-} {
+export function calculateUploadStats(videos: Video[]): UploadStats {
     if (!videos || videos.length === 0) {
         return {
-            uploadRecency: { latestPublishedTime: null, approximateDaysAgo: null },
-            uploadFrequency: { estimatedUploadsPerMonth: 0, averageDaysBetweenUploads: null },
-            uploadConsistency: { stdDevDaysBetweenUploads: null, coefficientOfVariation: null, isRegular: false },
+            count: 0,
+            recency: { latestPublishedTime: null, approximateDaysAgo: null },
+            frequency: { estimatedUploadsPerMonth: 0, averageDaysBetweenUploads: null },
+            consistency: { stdDevDaysBetweenUploads: null, coefficientOfVariation: null, intervalsInDays: [] },
         };
     }
 
@@ -56,15 +53,16 @@ export function calculateUploadStats(videos: Video[]): {
         }
 
         return {
-            uploadRecency,
-            uploadFrequency: {
+            count: videos.length,
+            recency: uploadRecency,
+            frequency: {
                 estimatedUploadsPerMonth,
                 averageDaysBetweenUploads,
             },
-            uploadConsistency: {
+            consistency: {
                 stdDevDaysBetweenUploads: validEntries.length === 1 ? 0 : null,
                 coefficientOfVariation: validEntries.length === 1 ? 0 : null,
-                isRegular: validEntries.length === 1,
+                intervalsInDays: [],
             },
         };
     }
@@ -90,28 +88,26 @@ export function calculateUploadStats(videos: Video[]): {
         gaps.length;
     const stdDevDaysBetweenUploads = Number(Math.sqrt(variance).toFixed(1));
 
-    // Coefficient of variation and consistency indicator
+    // Coefficient of variation
     let coefficientOfVariation: number | null = 0;
-    let isRegular = true;
 
     if (averageDaysBetweenUploads > 0) {
         coefficientOfVariation = Number((stdDevDaysBetweenUploads / averageDaysBetweenUploads).toFixed(2));
-        isRegular = coefficientOfVariation <= 0.5;
     } else {
         coefficientOfVariation = 0;
-        isRegular = true;
     }
 
     return {
-        uploadRecency,
-        uploadFrequency: {
+        count: videos.length,
+        recency: uploadRecency,
+        frequency: {
             estimatedUploadsPerMonth,
             averageDaysBetweenUploads,
         },
-        uploadConsistency: {
+        consistency: {
             stdDevDaysBetweenUploads,
             coefficientOfVariation,
-            isRegular,
+            intervalsInDays: gaps,
         },
     };
 }

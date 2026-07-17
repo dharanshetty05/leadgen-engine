@@ -13,7 +13,14 @@ export interface UploadFrequency {
 export interface UploadConsistency {
     stdDevDaysBetweenUploads: number | null;
     coefficientOfVariation: number | null;
-    isRegular: boolean;
+    intervalsInDays: number[];
+}
+
+export interface UploadStats {
+    count: number;
+    recency: UploadRecency;
+    frequency: UploadFrequency;
+    consistency: UploadConsistency;
 }
 
 export interface ViewStats {
@@ -31,7 +38,7 @@ export interface DurationStats {
     rangeSeconds: number;
 }
 
-export interface TitleLengthStats {
+export interface TitleStats {
     averageChars: number;
     minChars: number;
     maxChars: number;
@@ -41,26 +48,11 @@ export interface TitleLengthStats {
 export interface VideoEvidence {
     channelId: string;
 
-    // Upload metrics
-    uploadCount: number;
-    uploadRecency: UploadRecency;
-    uploadFrequency: UploadFrequency;
-    uploadConsistency: UploadConsistency;
-
-    // Direct convenience properties required by specification
-    averageViews: number;
-    medianViews: number;
-    highestViewedVideo: Video | null;
-    lowestViewedVideo: Video | null;
-    averageDuration: number; // in seconds
-    durationRange: number; // in seconds
-
-    // Detailed structured statistics
+    uploadStats: UploadStats;
     viewStats: ViewStats;
     durationStats: DurationStats;
-    titleLengthStats: TitleLengthStats;
+    titleStats: TitleStats;
 
-    // Visuals and records
     thumbnailUrls: string[];
     latestVideos: Video[];
 }

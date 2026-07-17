@@ -1,10 +1,6 @@
 import { Creator } from "./creator";
 import { Classification } from "./classification";
 
-export interface QualifiedCreator {
-
-    creator: Creator;
-
+export interface QualifiedCreator extends Creator {
     classification: Classification;
-
 }
